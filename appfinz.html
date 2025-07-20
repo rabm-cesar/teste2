@@ -1,0 +1,574 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FINZ - by Rebeca</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&display=swap" rel="stylesheet">
+    <script src="https://kit.fontawesome.com/your-fontawesome-kit.js" crossorigin="anonymous"></script> <style>
+        /* --- Reset Básico e Definições Globais --- */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #F7F8FC; /* Cinza claro de fundo */
+            color: #333333; /* Cinza escuro para texto */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        /* --- Container Principal (Simula um telemóvel) --- */
+        .phone-container {
+            width: 100%;
+            max-width: 420px;
+            height: 850px;
+            background-color: #FFFFFF;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+        }
+
+        /* --- Cabeçalho --- */
+        .app-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem;
+            background-color: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(10px);
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+
+        .app-title {
+            font-size: 1.75rem;
+            font-weight: 900;
+            color: #0E4D92; /* Azul Escuro */
+        }
+
+        .user-icon {
+            color: #0E4D92;
+            font-size: 1.5rem; /* Placeholder for icon */
+        }
+
+        /* --- Conteúdo Principal --- */
+        .app-main {
+            flex-grow: 1;
+            overflow-y: auto;
+            padding-bottom: 5rem; /* Espaço para a barra de navegação */
+        }
+
+        /* --- Cartão de Saldo --- */
+        .balance-card {
+            background-color: #FFFFFF;
+            padding: 1.5rem;
+            border-radius: 1.25rem;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+            margin: 1rem;
+        }
+
+        .balance-label {
+            font-size: 0.9rem;
+            color: #666;
+        }
+
+        .balance-value {
+            font-size: 2.25rem;
+            font-weight: 900;
+            color: #0E4D92;
+            margin-top: 0.25rem;
+        }
+
+        /* --- Botão de Adicionar --- */
+        .add-button-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin: 2rem 0;
+        }
+
+        .add-button {
+            width: 6rem; /* Ajustado para um tamanho mais sutil */
+            height: 6rem;
+            background-color: #48C9B0; /* Verde Menta */
+            border-radius: 50%;
+            border: none;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            box-shadow: 0 8px 20px rgba(72, 201, 176, 0.4);
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .add-button:hover {
+            transform: scale(1.05);
+            box-shadow: 0 12px 25px rgba(72, 201, 176, 0.5);
+        }
+        
+        .plus-icon {
+            font-size: 3rem;
+            color: white;
+            transition: transform 0.3s ease;
+        }
+
+        .add-button:hover .plus-icon {
+            transform: rotate(90deg);
+        }
+
+        /* --- Lista de Transações --- */
+        .transaction-list-container {
+            margin: 0 1rem;
+        }
+
+        .transaction-list-title {
+            font-size: 1.25rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+        }
+
+        .transaction-list {
+            background-color: #FFFFFF;
+            border-radius: 1.25rem;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+            list-style: none;
+            padding: 0;
+        }
+
+        .transaction-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem;
+            border-bottom: 1px solid #F0F0F0;
+        }
+
+        .transaction-item:last-child {
+            border-bottom: none;
+        }
+
+        .transaction-details {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .transaction-icon {
+            width: 40px;
+            height: 40px;
+            background-color: #F7F8FC;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 1.25rem;
+        }
+
+        .transaction-category {
+            font-weight: 600;
+        }
+
+        .transaction-description {
+            font-size: 0.85rem;
+            color: #666;
+        }
+
+        .transaction-value {
+            font-weight: 700;
+            font-size: 1.1rem;
+        }
+
+        .income { color: #2ECC71; } /* Verde Sucesso */
+        .expense { color: #E74C3C; } /* Vermelho Erro */
+
+        /* --- Modal --- */
+        .modal-overlay {
+            position: absolute; /* Mudado para absolute para ficar dentro do phone-container */
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.6);
+            display: flex;
+            justify-content: center;
+            align-items: flex-end;
+            z-index: 100;
+            opacity: 1;
+            transition: opacity 0.3s ease;
+        }
+
+        .modal-overlay.hidden {
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        .modal-content {
+            background-color: #F7F8FC;
+            width: 100%;
+            max-width: 420px;
+            padding: 1.5rem;
+            border-top-left-radius: 1.5rem;
+            border-top-right-radius: 1.5rem;
+            box-shadow: 0 -10px 30px rgba(0, 0, 0, 0.2);
+            animation: slide-up 0.4s ease-out;
+        }
+
+        @keyframes slide-up {
+            from { transform: translateY(100%); }
+            to { transform: translateY(0); }
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .modal-title {
+            color: #0E4D92;
+            font-weight: 700;
+            font-size: 1.5rem;
+        }
+
+        .close-modal-btn {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: #666;
+        }
+
+        /* --- Formulário do Modal --- */
+        #transaction-form .form-group {
+            margin-bottom: 1.25rem;
+        }
+
+        #transaction-form label {
+            display: block;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 0.5rem;
+        }
+
+        #transaction-form input,
+        #transaction-form select {
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid #DDD;
+            border-radius: 0.5rem;
+            font-size: 1rem;
+            font-family: 'Inter', sans-serif;
+            background-color: #FFF;
+        }
+
+        #transaction-form .amount-group input {
+            font-size: 2.5rem;
+            font-weight: 900;
+            text-align: center;
+            color: #0E4D92;
+            border: none;
+            background: transparent;
+            padding: 0;
+            outline: none; /* remove a borda azul ao focar */
+        }
+        
+        #transaction-form .amount-group input::placeholder {
+            color: #bdc3c7;
+        }
+
+        .type-toggle {
+            display: flex;
+            background-color: #EAEAEA;
+            border-radius: 99px;
+            padding: 0.25rem;
+        }
+
+        .toggle-btn {
+            width: 50%;
+            padding: 0.75rem;
+            border: none;
+            border-radius: 99px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            background-color: transparent;
+            color: #666;
+            transition: all 0.3s ease;
+        }
+
+        .toggle-btn.active {
+            color: white;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+
+        #type-expense.active { background-color: #E74C3C; }
+        #type-income.active { background-color: #2ECC71; }
+
+        .save-btn {
+            width: 100%;
+            padding: 1rem;
+            background-color: #48C9B0;
+            color: white;
+            border: none;
+            border-radius: 0.75rem;
+            font-size: 1.1rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: background-color 0.2s ease;
+            margin-top: 1rem;
+        }
+
+        .save-btn:hover {
+            background-color: #40b39e;
+        }
+    </style>
+</head>
+<body>
+
+<div class="phone-container">
+    
+    <div class="modal-overlay hidden" id="modal-overlay">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title">Nova Transação</h2>
+                <button class="close-modal-btn" id="close-modal-btn">&times;</button>
+            </div>
+            <form id="transaction-form">
+                <div class="form-group">
+                    <div class="type-toggle">
+                        <button type="button" class="toggle-btn active" id="type-expense">Despesa</button>
+                        <button type="button" class="toggle-btn" id="type-income">Receita</button>
+                    </div>
+                </div>
+                <div class="form-group amount-group">
+                    <input type="number" id="modal-amount" placeholder="0,00" step="0.01" min="0.01" required>
+                </div>
+                <div class="form-group">
+                    <label for="modal-description">Descrição</label>
+                    <input type="text" id="modal-description" required>
+                </div>
+                <div class="form-group">
+                    <label for="modal-category">Categoria</label>
+                    <select id="modal-category" required>
+                        <option value="Alimentação">Alimentação</option>
+                        <option value="Transporte">Transporte</option>
+                        <option value="Moradia">Moradia</option>
+                        <option value="Lazer">Lazer</option>
+                        <option value="Salário">Salário</option>
+                        <option value="Educação">Educação</option>
+                        <option value="Saúde">Saúde</option>
+                        <option value="Outros">Outros</option>
+                    </select>
+                </div>
+                <button type="submit" class="save-btn">Salvar</button>
+            </form>
+        </div>
+    </div>
+
+    <header class="app-header">
+        <h1 class="app-title">FINZ</h1>
+        <div class="user-icon">👤</div>
+    </header>
+
+    <main class="app-main">
+        
+        <div class="balance-card">
+            <p class="balance-label">Saldo Atual</p>
+            <p class="balance-value" id="balance-value">R$ 0,00</p>
+        </div>
+
+        <div class="add-button-container">
+            <button class="add-button" id="add-transaction-btn">
+                <span class="plus-icon">+</span>
+            </button>
+        </div>
+
+        <div class="transaction-list-container">
+            <h2 class="transaction-list-title">Últimas Transações</h2>
+            <ul class="transaction-list" id="transaction-list">
+                </ul>
+        </div>
+    </main>
+
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+
+    // --- SELETORES DE ELEMENTOS DO DOM ---
+    const balanceValueEl = document.getElementById('balance-value');
+    const transactionListEl = document.getElementById('transaction-list');
+    
+    // Modal e botões de controle
+    const modalOverlay = document.getElementById('modal-overlay');
+    const addTransactionBtn = document.getElementById('add-transaction-btn');
+    const closeModalBtn = document.getElementById('close-modal-btn');
+    
+    // Formulário do modal
+    const transactionForm = document.getElementById('transaction-form');
+    const typeExpenseBtn = document.getElementById('type-expense');
+    const typeIncomeBtn = document.getElementById('type-income');
+    const amountInput = document.getElementById('modal-amount');
+    const descriptionInput = document.getElementById('modal-description');
+    const categoryInput = document.getElementById('modal-category');
+
+    // --- ESTADO DA APLICAÇÃO ---
+    let transactions = [];
+    let transactionType = 'despesa'; // Valor padrão
+
+    // --- FUNÇÕES ---
+
+    // Função para abrir o modal
+    function openModal() {
+        modalOverlay.classList.remove('hidden');
+    }
+
+    // Função para fechar o modal
+    function closeModal() {
+        modalOverlay.classList.add('hidden');
+        transactionForm.reset(); // Limpa o formulário ao fechar
+        // Reseta o toggle para o padrão
+        typeExpenseBtn.classList.add('active');
+        typeIncomeBtn.classList.remove('active');
+        transactionType = 'despesa';
+    }
+
+    // Função para atualizar o saldo na tela
+    function updateBalance() {
+        const total = transactions.reduce((acc, transaction) => {
+            if (transaction.type === 'receita') {
+                return acc + transaction.amount;
+            } else {
+                return acc - transaction.amount;
+            }
+        }, 0);
+
+        balanceValueEl.textContent = total.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+    }
+    
+    // Mapeia categorias para ícones (emojis simples)
+    const categoryIcons = {
+        'Alimentação': '🍔',
+        'Transporte': '🚗',
+        'Moradia': '🏠',
+        'Lazer': '🎬',
+        'Salário': '💰',
+        'Educação': '📚',
+        'Saúde': '💊',
+        'Outros': '📦'
+    };
+
+    // Função para renderizar as transações na lista
+    function renderTransactions() {
+        transactionListEl.innerHTML = ''; // Limpa a lista
+
+        if (transactions.length === 0) {
+            transactionListEl.innerHTML = '<p style="text-align: center; padding: 20px; color: #666;">Nenhuma transação ainda.</p>';
+            return;
+        }
+
+        // Pega as últimas transações para exibir
+        const recentTransactions = transactions.slice().reverse();
+
+        recentTransactions.forEach(t => {
+            const li = document.createElement('li');
+            li.className = 'transaction-item';
+
+            const valueClass = t.type === 'receita' ? 'income' : 'expense';
+            const sign = t.type === 'receita' ? '+' : '-';
+            const formattedValue = t.amount.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+            
+            li.innerHTML = `
+                <div class="transaction-details">
+                    <div class="transaction-icon">${categoryIcons[t.category] || '❓'}</div>
+                    <div>
+                        <p class="transaction-category">${t.category}</p>
+                        <p class="transaction-description">${t.description}</p>
+                    </div>
+                </div>
+                <p class="transaction-value ${valueClass}">${sign} ${formattedValue}</p>
+            `;
+
+            transactionListEl.appendChild(li);
+        });
+    }
+
+    // Função para adicionar uma nova transação
+    function addTransaction(e) {
+        e.preventDefault(); // Previne o recarregamento da página
+
+        const amount = parseFloat(amountInput.value);
+        const description = descriptionInput.value;
+        const category = categoryInput.value;
+
+        if (!description || !amount || !category) {
+            alert('Por favor, preencha todos os campos.');
+            return;
+        }
+
+        const transaction = {
+            id: Date.now(),
+            type: transactionType,
+            amount,
+            description,
+            category
+        };
+
+        transactions.push(transaction);
+
+        updateBalance();
+        renderTransactions();
+        closeModal();
+    }
+
+
+    // --- EVENT LISTENERS (OUVINTES DE EVENTOS) ---
+
+    // Abrir modal
+    addTransactionBtn.addEventListener('click', openModal);
+
+    // Fechar modal
+    closeModalBtn.addEventListener('click', closeModal);
+    modalOverlay.addEventListener('click', (e) => {
+        if (e.target === modalOverlay) {
+            closeModal();
+        }
+    });
+
+    // Lógica do toggle de tipo (Receita/Despesa)
+    typeExpenseBtn.addEventListener('click', () => {
+        transactionType = 'despesa';
+        typeExpenseBtn.classList.add('active');
+        typeIncomeBtn.classList.remove('active');
+    });
+
+    typeIncomeBtn.addEventListener('click', () => {
+        transactionType = 'receita';
+        typeIncomeBtn.classList.add('active');
+        typeExpenseBtn.classList.remove('active');
+    });
+    
+    // Envio do formulário
+    transactionForm.addEventListener('submit', addTransaction);
+
+    // --- INICIALIZAÇÃO ---
+    updateBalance();
+    renderTransactions();
+});
+</script>
+
+</body>
+</html>
