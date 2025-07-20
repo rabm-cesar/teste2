@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FINZ - Demonstração</title>
+    <style>
+        /* Estilos gerais para a página */
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+            background-color: #f4f7f6;
+            color: #333;
+            margin: 0;
+            padding: 20px;
+        }
+        .container {
+            max-width: 800px;
+            margin: auto;
+            background-color: #ffffff;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+        }
+        h1, h2 {
+            color: #005f73;
+            border-bottom: 2px solid #94d2bd;
+            padding-bottom: 10px;
+        }
+
+        /* Estilos do formulário */
+        form {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+        .form-group {
+            flex: 1;
+            min-width: 200px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        input, select {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+
+        /* Estilos dos botões */
+        button {
+            background-color: #0a9396;
+            color: white;
+            padding: 12px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background-color 0.3s;
+        }
+        button:hover {
+            background-color: #005f73;
+        }
+        .btn-submit {
+            flex-basis: 100%;
+        }
+
+        /* Estilos da tabela de transações */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        th, td {
+            text-align: left;
+            padding: 12px;
+            border-bottom: 1px solid #ddd;
+        }
+        th {
+            background-color: #e9ecef;
+        }
+        .receita {
+            color: #2d6a4f; /* Verde para receitas */
+        }
+        .despesa {
+            color: #9b2226; /* Vermelho para despesas */
+        }
+
+        /* Estilos da área de relatório */
+        .report-controls {
+            display: flex;
+            gap: 15px;
+            align-items: flex-end;
+            margin-bottom: 20px;
+        }
+        #report-output {
+            margin-top: 20px;
+            padding: 15px;
+            background-color: #eef;
+            border: 1px solid #ccf;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1>FINZ - Seu Controle Financeiro</h1>
+
+        <section>
+            <h2>Registrar Nova Transação</h2>
+            <form id="transaction-form">
+                <div class="form-group">
+                    <label for="description">Descrição</label>
+                    <input type="text" id="description" placeholder="Ex: Almoço, Salário" required>
+                </div>
+                <div class="form-group">
+                    <label for="amount">Valor (R$)</label>
+                    <input type="number" id="amount" placeholder="25,50" required min="0.01" step="0.01">
+                </div>
+                <div class="form-group">
+                    <label for="type">Tipo</label>
+                    <select id="type" required>
+                        <option value="despesa">Despesa</option>
+                        <option value="receita">Receita</option>
+                    </select>
+                </div>
+                 <div class="form-group">
+                    <label for="category">Categoria</label>
+                    <select id="category" required>
+                        <option value="Alimentação">Alimentação</option>
+                        <option value="Transporte">Transporte</option>
+                        <option value="Moradia">Moradia</option>
+                        <option value="Lazer">Lazer</option>
+                        <option value="Salário">Salário</option>
+                        <option value="Outros">Outros</option>
+                    </select>
+                </div>
+                <button type="submit" class="btn-submit">Adicionar Transação</button>
+            </form>
+        </section>
+
+        <section>
+            <h2>Relatórios e Transações</h2>
+            
+            <div class="report-controls">
+                <div class="form-group">
+                    <label for="start-date">Data de Início</label>
+                    <input type="date" id="start-date">
+                </div>
+                <div class="form-group">
+                    <label for="end-date">Data de Fim</label>
+                    <input type="date" id="end-date">
+                </div>
+                <button id="generate-report-btn">Gerar Relatório de Despesas</button>
+            </div>
+            
+            <div id="report-output">
+                <p>Selecione um período e clique em "Gerar Relatório" para ver o resumo de despesas por categoria.</p>
+            </div>
+            
+            <h2>Histórico de Transações</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Descrição</th>
+                        <th>Valor</th>
+                        <th>Tipo</th>
+                        <th>Categoria</th>
+                        <th>Data</th>
+                    </tr>
+                </thead>
+                <tbody id="transaction-list">
+                    </tbody>
+            </table>
+        </section>
+
+    </div>
+
+    <script>
+        // Selecionando os elementos do HTML que vamos manipular
+        const transactionForm = document.getElementById('transaction-form');
+        const transactionList = document.getElementById('transaction-list');
+        const generateReportBtn = document.getElementById('generate-report-btn');
+        const reportOutput = document.getElementById('report-output');
+
+        // Nosso "banco de dados" em memória. É um array que guarda as transações.
+        let transactions = [];
+
+        // Função para renderizar (desenhar) a lista de transações na tela
+        function renderTransactions() {
+            transactionList.innerHTML = ''; // Limpa a lista antes de redesenhar
+
+            if (transactions.length === 0) {
+                transactionList.innerHTML = '<tr><td colspan="5">Nenhuma transação registrada.</td></tr>';
+                return;
+            }
+
+            transactions.forEach(transaction => {
+                const tr = document.createElement('tr');
+                tr.classList.add(transaction.type); // Adiciona a classe 'receita' ou 'despesa' para o estilo
+
+                // Formata o valor para o padrão brasileiro (R$)
+                const formattedAmount = transaction.amount.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+
+                tr.innerHTML = `
+                    <td>${transaction.description}</td>
+                    <td>${formattedAmount}</td>
+                    <td>${transaction.type.charAt(0).toUpperCase() + transaction.type.slice(1)}</td>
+                    <td>${transaction.category}</td>
+                    <td>${new Date(transaction.date).toLocaleDateString('pt-BR', {timeZone: 'UTC'})}</td>
+                `;
+                transactionList.appendChild(tr);
+            });
+        }
+
+        // Evento que ocorre quando o formulário de nova transação é enviado
+        transactionForm.addEventListener('submit', event => {
+            event.preventDefault(); // Impede que a página recarregue
+
+            // Pega os valores dos campos do formulário
+            const description = document.getElementById('description').value;
+            const amount = parseFloat(document.getElementById('amount').value);
+            const type = document.getElementById('type').value;
+            const category = document.getElementById('category').value;
+            
+            // Cria um novo objeto de transação
+            const newTransaction = {
+                id: Date.now(), // ID único baseado no tempo atual
+                description,
+                amount,
+                type,
+                category,
+                date: new Date().toISOString().slice(0, 10) // Pega a data de hoje no formato YYYY-MM-DD
+            };
+
+            // Adiciona a nova transação ao nosso array
+            transactions.push(newTransaction);
+            
+            // Re-renderiza a lista na tela e limpa o formulário
+            renderTransactions();
+            transactionForm.reset();
+        });
+
+        // Evento que ocorre quando o botão de gerar relatório é clicado
+        generateReportBtn.addEventListener('click', () => {
+            const startDate = document.getElementById('start-date').value;
+            const endDate = document.getElementById('end-date').value;
+
+            // Validação de datas
+            if (!startDate || !endDate) {
+                alert('Por favor, selecione a data de início e de fim.');
+                return;
+            }
+
+            /*
+                FIX para o Erro CT-005:
+                Esta verificação impede que o código prossiga se a data de início for posterior à data de fim,
+                exibindo um alerta ao usuário e evitando que a aplicação trave.
+            */
+            if (startDate > endDate) {
+                alert('A data de início não pode ser posterior à data de fim.');
+                return;
+            }
+            
+            // Filtra as transações para pegar apenas as DESPESAS dentro do período
+            const filteredExpenses = transactions.filter(t => {
+                return t.type === 'despesa' && t.date >= startDate && t.date <= endDate;
+            });
+
+            if (filteredExpenses.length === 0) {
+                reportOutput.innerHTML = '<p>Nenhuma despesa encontrada no período selecionado.</p>';
+                return;
+            }
+
+            // Agrupa as despesas por categoria
+            const expensesByCategory = filteredExpenses.reduce((acc, expense) => {
+                if (!acc[expense.category]) {
+                    acc[expense.category] = 0;
+                }
+                acc[expense.category] += expense.amount;
+                return acc;
+            }, {});
+
+            // Monta o HTML do relatório
+            let reportHTML = '<h3>Resumo de Despesas por Categoria</h3><ul>';
+            for (const category in expensesByCategory) {
+                const totalAmount = expensesByCategory[category].toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+                reportHTML += `<li><strong>${category}:</strong> ${totalAmount}</li>`;
+            }
+            reportHTML += '</ul>';
+
+            reportOutput.innerHTML = reportHTML;
+        });
+
+        // Chama a função renderTransactions() no início para mostrar a lista vazia
+        renderTransactions();
+    </script>
+
+</body>
+</html>
